@@ -3,8 +3,7 @@ const http = require('http');
 const pug = require('pug');
 const server = http
   .createServer((req, res) => {
-    const now = new Date();
-    console.info('[' + now + '] Requested by ' + req.socket.remoteAddress);
+    console.info('Requested by ' + req.socket.remoteAddress);
     res.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8'
     });
@@ -22,6 +21,9 @@ const server = http
             '<li><a href="/enquetes/yaki-shabu">焼き肉・しゃぶしゃぶ</a></li>' +
             '<li><a href="/enquetes/rice-bread">ごはん・パン</a></li>' +
             '<li><a href="/enquetes/sushi-pizza">寿司・ピザ</a></li>' +
+            '<li><a href="/enquetes/coffee-tea">コーヒー・紅茶</a></li>' +
+            '<li><a href="/enquetes/ice-parfait">アイスクリーム・パフェ</a></li>' +
+            '<li><a href="/enquetes/mom-kottu">母のテキトー料理・おとこのワイルド料理</a></li>' +
             '</ul></body></html>');
         } else if (req.url === '/enquetes/yaki-shabu') {
           res.write(
@@ -45,6 +47,25 @@ const server = http
             firstItem: '寿司',
             secondItem: 'ピザ'
           }));
+        } else if (req.url === '/enquetes/coffee-tea') {
+          res.write(pug.renderFile('./form.pug', {
+            path: req.url,
+            firstItem: 'コーヒー',
+            secondItem: '紅茶'
+          }));
+        } else if (req.url === '/enquetes/ice-parfait') {
+          res.write(pug.renderFile('./form.pug', {
+            path: req.url,
+            firstItem: 'アイスクリーム',
+            secondItem: 'パフェ'
+          }));
+        } else if (req.url === '/enquetes/mom-kottu') {
+          res.write(pug.renderFile('./form.pug', {
+            path: req.url,
+            firstItem: '母のテキトー料理',
+            secondItem: 'おとこのワイルド料理'
+          }));
+
         }
         res.end();
         break;
@@ -59,7 +80,7 @@ const server = http
             const answer = qs.parse(rawData);
             const body = answer['name'] + 'さんは' +
               answer['favorite'] + 'に投票しました';
-            console.info('[' + now + '] ' + body);
+            console.info(body);
             res.write('<!DOCTYPE html><html lang="ja"><body><h1>' +
               body + '</h1></body></html>');
             res.end();
@@ -70,12 +91,12 @@ const server = http
     }
   })
   .on('error', e => {
-    console.error('[' + new Date() + '] Server Error', e);
+    console.error('Server Error', e);
   })
   .on('clientError', e => {
-    console.error('[' + new Date() + '] Client Error', e);
+    console.error('Client Error', e);
   });
 const port = process.env.PORT || 8000;
 server.listen(port, () => {
-  console.info('[' + new Date() + '] Listening on ' + port);
+  console.info('Listening on ' + port);
 });
