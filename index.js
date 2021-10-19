@@ -3,26 +3,23 @@ const http = require('http');
 const pug = require('pug');
 const server = http
   .createServer((req, res) => {
-    const now = new Date();
-    console.info('[' + now + '] Requested by ' + req.socket.remoteAddress);
+    console.info(' Requested by ' + req.socket.remoteAddress);
     res.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8'
     });
 
     switch (req.method) {
       case 'GET':
+        //もし http://localhost:8000 が呼び出されたら,topページ用に作成したpugファイルを読み込む
         if (req.url === '/') {
-          res.write('<!DOCTYPE html><html lang="ja"><body>' +
-            '<h1>アンケートフォーム</h1>' +
-            '<a href="/enquetes">アンケート一覧</a>' +
-            '</body></html>');
+          res.write(
+            pug.renderFile('./top-page.pug')
+          );
+          //もし http://localhost:8000/enquetes が呼び出されたら,indexページ用に作成したpugファイルを読み込む
         } else if (req.url === '/enquetes') {
-          res.write('<!DOCTYPE html><html lang="ja"><body>' +
-            '<h1>アンケート一覧</h1><ul>' +
-            '<li><a href="/enquetes/yaki-shabu">焼き肉・しゃぶしゃぶ</a></li>' +
-            '<li><a href="/enquetes/rice-bread">ごはん・パン</a></li>' +
-            '<li><a href="/enquetes/sushi-pizza">寿司・ピザ</a></li>' +
-            '</ul></body></html>');
+          res.write(
+            pug.renderFile('index-page.pug')
+          );
         } else if (req.url === '/enquetes/yaki-shabu') {
           res.write(
             pug.renderFile('./form.pug', {
@@ -40,11 +37,13 @@ const server = http
             })
           );
         } else if (req.url === '/enquetes/sushi-pizza') {
-          res.write(pug.renderFile('./form.pug', {
-            path: req.url,
-            firstItem: '寿司',
-            secondItem: 'ピザ'
-          }));
+          res.write(
+            pug.renderFile('./form.pug', {
+              path: req.url,
+              firstItem: '寿司',
+              secondItem: 'ピザ'
+            })
+          );
         }
         res.end();
         break;
@@ -55,13 +54,15 @@ const server = http
             rawData = rawData + chunk;
           })
           .on('end', () => {
-            const qs = require('querystring');
-            const answer = qs.parse(rawData);
-            const body = answer['name'] + 'さんは' +
-              answer['favorite'] + 'に投票しました';
-            console.info('[' + now + '] ' + body);
-            res.write('<!DOCTYPE html><html lang="ja"><body><h1>' +
-              body + '</h1></body></html>');
+            const answer = new URLSearchParams(rawData);
+            const body = answer.get('name') + 'さんは' +
+              answer.get('favorite') + 'に投票しました';
+            console.info(body);
+            res.write(
+              pug.renderFile('./answer.pug', {
+                body: body
+              })
+            );
             res.end();
           });
         break;
@@ -70,11 +71,13 @@ const server = http
     }
   })
   .on('error', e => {
-    console.error('[' + new Date() + '] Server Error', e);
+    console.error('Server Error', e);
   })
   .on('clientError', e => {
-    console.error('[' + new Date() + '] Client Error', e);
+    console.error('Client Error', e);
   });
+//process.env.環境変数名 とすれば、node.js の processモジュールの envオブジェクトに記述されているその環境変数を参照できる（変数がなければ undefined を返す）
+//環境変数PORTがあればそのポートをサーバの待ち受けとして利用し、なければ8000を利用する
 const port = process.env.PORT || 8000;
 server.listen(port, () => {
   console.info('[' + new Date() + '] Listening on ' + port);
